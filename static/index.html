@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>trade forex by กุลกิม - Gold Price Analysis Dashboard</title>
+    <!-- Modern Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- ApexCharts CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <!-- Custom Style -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="glow-bg"></div>
+    <div class="app-container">
+        
+        <!-- Header -->
+        <header class="main-header">
+            <div class="brand">
+                <i class="fa-solid fa-chart-line logo-icon"></i>
+                <h1 class="gradient-text">trade forex by กุลกิม</h1>
+            </div>
+            <div class="header-status">
+                <span class="server-badge">
+                    <span class="pulse-dot"></span>
+                    <span id="connection-status">Connecting to Market...</span>
+                </span>
+                <span class="time-badge" id="current-time">00:00:00</span>
+            </div>
+        </header>
+
+        <!-- Main Dashboard Grid -->
+        <main class="dashboard-grid">
+            
+            <!-- Quick Price Cards -->
+            <section class="price-cards-row">
+                <div class="glass-card price-card live" id="card-spot">
+                    <div class="card-icon"><i class="fa-solid fa-coins gold-color"></i></div>
+                    <div class="card-info">
+                        <h3>Gold Spot (XAU/USD)</h3>
+                        <p class="price-val" id="spot-price">$0.00</p>
+                        <span class="sub-text" id="spot-time">Loading...</span>
+                    </div>
+                </div>
+
+                <div class="glass-card price-card" id="card-high">
+                    <div class="card-icon"><i class="fa-solid fa-arrow-trend-up green-color"></i></div>
+                    <div class="card-info">
+                        <h3 id="high-label">Period High</h3>
+                        <p class="price-val green-color" id="high-price">$0.00</p>
+                        <span class="sub-text">Resistance Target</span>
+                    </div>
+                </div>
+
+                <div class="glass-card price-card" id="card-low">
+                    <div class="card-icon"><i class="fa-solid fa-arrow-trend-down red-color"></i></div>
+                    <div class="card-info">
+                        <h3 id="low-label">Period Low</h3>
+                        <p class="price-val red-color" id="low-price">$0.00</p>
+                        <span class="sub-text">Support Target</span>
+                    </div>
+                </div>
+
+                <div class="glass-card price-card" id="card-spread">
+                    <div class="card-icon"><i class="fa-solid fa-right-left blue-color"></i></div>
+                    <div class="card-info">
+                        <h3>Period Range</h3>
+                        <p class="price-val blue-color" id="range-val">$0.00</p>
+                        <span class="sub-text" id="range-percentage">0.00%</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Chart & Navigation Area -->
+            <section class="chart-section glass-card">
+                <div class="chart-header">
+                    <div class="chart-title">
+                        <h2>Gold Candlestick Chart ($/oz)</h2>
+                        <span class="chart-desc">Exchange: COMEX (GC=F)</span>
+                    </div>
+                    <div class="timeframe-selector">
+                        <button class="tf-btn" data-tf="h1">H1</button>
+                        <button class="tf-btn active" data-tf="h4">H4</button>
+                        <button class="tf-btn" data-tf="day">DAILY</button>
+                        <button class="tf-btn" data-tf="week">WEEKLY</button>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <div id="chart-loader" class="loader-overlay">
+                        <div class="spinner"></div>
+                        <p>Fetching Gold Market Data...</p>
+                    </div>
+                    <div id="gold-chart"></div>
+                </div>
+            </section>
+
+            <!-- Fibonacci Settings & Levels -->
+            <section class="fibo-container-grid">
+                
+                <!-- Auto Fibonacci -->
+                <div class="glass-card fibo-card">
+                    <div class="card-header-fibo">
+                        <h3><i class="fa-solid fa-calculator fibo-icon"></i> Auto Fibonacci Levels</h3>
+                        <span class="badge badge-auto" id="auto-tf-badge">H4</span>
+                    </div>
+                    <div class="fibo-levels-list" id="auto-fibo-list">
+                        <!-- Auto Fibo Levels Table -->
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Level (%)</th>
+                                    <th>Ratio</th>
+                                    <th>Price ($/oz)</th>
+                                    <th>Role</th>
+                                </tr>
+                            </thead>
+                            <tbody id="auto-fibo-tbody">
+                                <tr><td colspan="4" class="text-center">Loading levels...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Custom/Manual Fibonacci -->
+                <div class="glass-card fibo-card">
+                    <div class="card-header-fibo">
+                        <h3><i class="fa-solid fa-user-gear fibo-icon"></i> Custom Fibonacci Input</h3>
+                        <span class="badge badge-manual">MANUAL</span>
+                    </div>
+                    <div class="fibo-form-container">
+                        <p class="form-desc">Define custom High & Low boundary prices to calculate specific Fibonacci Retracements.</p>
+                        <div class="form-group-row">
+                            <div class="input-group">
+                                <label for="custom-high">Custom High Price ($/oz)</label>
+                                <div class="input-wrapper">
+                                    <span class="input-prefix">$</span>
+                                    <input type="number" id="custom-high" step="0.01" placeholder="e.g. 2480.00">
+                                </div>
+                            </div>
+                            <div class="input-group">
+                                <label for="custom-low">Custom Low Price ($/oz)</label>
+                                <div class="input-wrapper">
+                                    <span class="input-prefix">$</span>
+                                    <input type="number" id="custom-low" step="0.01" placeholder="e.g. 2350.00">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button id="btn-calc-custom" class="btn btn-primary"><i class="fa-solid fa-wand-magic-sparkles"></i> Calculate & Overlay</button>
+                            <button id="btn-reset-custom" class="btn btn-secondary"><i class="fa-solid fa-arrow-rotate-left"></i> Reset to Auto</button>
+                        </div>
+
+                        <!-- Manual Levels Table -->
+                        <div class="custom-levels-result hidden" id="custom-levels-result">
+                            <h4 class="sub-title">Calculated Custom Levels</h4>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Level (%)</th>
+                                        <th>Price ($/oz)</th>
+                                        <th>Distance</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="custom-fibo-tbody">
+                                    <!-- Populated on calculation -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Technical Analysis Context -->
+            <section class="analysis-section glass-card">
+                <h3><i class="fa-solid fa-circle-info analysis-icon"></i> Market Structure Analysis (Fibonacci Retracement)</h3>
+                <div class="analysis-grid">
+                    <div class="analysis-card">
+                        <h4>Fibonacci Support & Resistance Roles</h4>
+                        <p>Fibonacci Retracements help identify potential support and resistance zones where price action might stall or reverse:</p>
+                        <ul>
+                            <li><strong>23.6% & 38.2%</strong>: Shallow retracements. Typical in strong trends. Indicates high market momentum.</li>
+                            <li><strong>50.0%</strong>: Psychological midpoint. Highly watched level for reversal confirmations.</li>
+                            <li><strong>61.8% (The Golden Ratio)</strong>: The key retracement level. A bounce here represents a classic trend continuation entry.</li>
+                            <li><strong>78.6%</strong>: Deep retracement. Reaching here shows a weakening trend, often leading to a full retest of the start (100% or 0%).</li>
+                        </ul>
+                    </div>
+                    <div class="analysis-card" id="trading-signals-card">
+                        <h4>XAU/USD Current Positioning</h4>
+                        <div id="positioning-content">
+                            <p>Analyzing price trends against Fibonacci levels...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+        
+        <!-- Footer -->
+        <footer class="main-footer">
+            <p>&copy; 2026 Gold Price Analysis Dashboard - Naming: <strong>trade forex by กุลกิม</strong></p>
+            <p class="footer-note">Disclaimer: Trading forex and precious metals carries high risk. This dashboard is for educational/analytical purposes only.</p>
+        </footer>
+    </div>
+
+    <!-- Main JavaScript Logic -->
+    <script src="app.js"></script>
+</body>
+</html>
