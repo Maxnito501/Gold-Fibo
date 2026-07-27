@@ -5,6 +5,7 @@ let chartInstance = null;
 let isManualMode = false;
 let manualHigh = null;
 let manualLow = null;
+let activePositions = [];
 
 // Fibonacci levels ratios
 const FIB_RATIOS = [
@@ -21,6 +22,7 @@ const FIB_RATIOS = [
 document.addEventListener('DOMContentLoaded', () => {
     initClock();
     fetchData();
+    initPortfolio();
     setupEventListeners();
 });
 
@@ -95,11 +97,12 @@ function setupEventListeners() {
         });
     });
 
-    // Custom Fibonacci Button
+    // Custom Fibonacci Buttons
     document.getElementById('btn-calc-custom').addEventListener('click', calculateCustomFibo);
-    
-    // Reset Fibonacci Button
     document.getElementById('btn-reset-custom').addEventListener('click', resetToAuto);
+
+    // Portfolio Form Button
+    document.getElementById('btn-add-position').addEventListener('click', addPosition);
 }
 
 // Calculate Fibonacci Levels helper
@@ -121,7 +124,311 @@ function roundToTwo(num) {
     return Math.round((num + Number.EPSILON) * 100) / 100;
 }
 
-// Update UI dashboard based on current state
+// ==========================================
+// PORTFOLIO LOGIC (Local Storage)
+// ==========================================
+
+function initPortfolio() {
+    const stored = localStorage.getItem('gold_portfolio');
+    if (stored) {
+        try {
+            activePositions = JSON.parse(stored);
+        } catch (e) {
+            activePositions = [];
+        }
+    } else {
+        activePositions = [];
+    }
+}
+
+function savePortfolio() {
+    localStorage.setItem('gold_portfolio', JSON.stringify(activePositions));
+}
+
+function addPosition() {
+    const type = document.getElementById('pos-type').value;
+    const entry = parseFloat(document.getElementById('pos-entry').value);
+    const lots = parseFloat(document.getElementById('pos-lots').value);
+    const slInput = document.getElementById('pos-sl').value;
+    const tpInput = document.getElementById('pos-tp').value;
+
+    if (isNaN(entry) || isNaN(lots) || entry <= 0 || lots <= 0) {
+        alert('Please enter a valid positive Entry Price and Lot Size.');
+        return;
+    }
+
+    const sl = slInput ? parseFloat(slInput) : null;
+    const tp = tpInput ? parseFloat(tpInput) : null;
+
+    if (sl !== null && sl <= 0) {
+        alert('Stop Loss must be a positive number.');
+        return;
+    }
+    if (tp !== null && tp <= 0) {
+        alert('Take Profit must be a positive number.');
+        return;
+    }
+
+    const newPos = {
+        id: Date.now(),
+        type,
+        entry: roundToTwo(entry),
+        lots: roundToTwo(lots),
+        sl: sl ? roundToTwo(sl) : null,
+        tp: tp ? roundToTwo(tp) : null,
+        dateAdded: new Date().toISOString()
+    };
+
+    activePositions.push(newPos);
+    savePortfolio();
+    
+    // Clear inputs
+    document.getElementById('pos-entry').value = '';
+    document.getElementById('pos-sl').value = '';
+    document.getElementById('pos-tp').value = '';
+    document.getElementById('pos-lots').value = '0.10';
+
+    updateDashboard();
+}
+
+function deletePosition(id) {
+    activePositions = activePositions.filter(p => p.id !== id);
+    savePortfolio();
+    updateDashboard();
+}
+
+// Render active positions & calculate P&L in USD
+function renderPortfolio(latestPrice, currentFibLevels) {
+    const tbody = document.getElementById('positions-tbody');
+    const totalCountEl = document.getElementById('total-positions-count');
+    const totalPnlEl = document.getElementById('total-portfolio-pnl');
+    
+    totalCountEl.textContent = activePositions.length;
+    
+    if (activePositions.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="10" class="text-center text-muted">No active positions. Add trades using the form above.</td></tr>`;
+        totalPnlEl.textContent = '$0.00';
+        totalPnlEl.className = '';
+        return;
+    }
+
+    tbody.innerHTML = '';
+    let totalPnl = 0;
+
+    activePositions.forEach(pos => {
+        // P&L calculation: 1 Standard Lot = 100 oz of gold
+        let pnl = 0;
+        if (pos.type === 'BUY') {
+            pnl = (latestPrice - pos.entry) * pos.lots * 100;
+        } else {
+            pnl = (pos.entry - latestPrice) * pos.lots * 100;
+        }
+        totalPnl += pnl;
+
+        // Calculate R:R Ratio
+        let rrText = 'N/A';
+        if (pos.sl && pos.tp) {
+            const reward = Math.abs(pos.tp - pos.entry);
+            const risk = Math.abs(pos.entry - pos.sl);
+            if (risk > 0) {
+                rrText = `1:${(reward / risk).toFixed(2)}`;
+            }
+        }
+
+        // Eval Rating
+        const rating = evaluatePosition(pos, currentFibLevels);
+
+        // Format classes
+        const typeBadge = pos.type === 'BUY' ? 'badge-buy' : 'badge-sell';
+        const pnlClass = pnl >= 0 ? 'profit-text' : 'loss-text';
+        const formattedPnl = (pnl >= 0 ? '+$' : '-$') + Math.abs(pnl).toLocaleString('en-US', { minimumFractionDigits: 2 });
+
+        tbody.innerHTML += `
+            <tr>
+                <td><span class="${typeBadge}">${pos.type}</span></td>
+                <td><strong>${pos.lots.toFixed(2)}</strong></td>
+                <td>$${pos.entry.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                <td>$${latestPrice.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+                <td>${pos.sl ? '$' + pos.sl.toLocaleString('en-US', { minimumFractionDigits: 2 }) : '<span class="text-muted">None</span>'}</td>
+                <td>${pos.tp ? '$' + pos.tp.toLocaleString('en-US', { minimumFractionDigits: 2 }) : '<span class="text-muted">None</span>'}</td>
+                <td><span class="sub-text">${rrText}</span></td>
+                <td><span class="${pnlClass}">${formattedPnl}</span></td>
+                <td><span class="eval-badge ${rating.class}">${rating.label}</span></td>
+                <td>
+                    <button class="btn-delete" onclick="deletePosition(${pos.id})" title="Delete Position">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+
+    totalPnlEl.textContent = (totalPnl >= 0 ? '+$' : '-$') + Math.abs(totalPnl).toLocaleString('en-US', { minimumFractionDigits: 2 });
+    totalPnlEl.className = totalPnl >= 0 ? 'green-color' : 'red-color';
+}
+
+// AI Position Quality Evaluator
+function evaluatePosition(pos, levels) {
+    const high = levels.find(l => l.name === '100.0%').price;
+    const low = levels.find(l => l.name === '0.0%').price;
+    const fib618 = levels.find(l => l.name === '61.8%').price;
+    const fib50 = levels.find(l => l.name === '50.0%').price;
+    const fib786 = levels.find(l => l.name === '78.6%').price;
+    const diff = high - low;
+
+    // 1. Critical Danger: No Stop Loss
+    if (!pos.sl) {
+        return { label: 'CRITICAL: NO SL SET', class: 'eval-critical' };
+    }
+
+    // 2. Risk/Reward Ratio Check
+    if (pos.sl && pos.tp) {
+        const reward = Math.abs(pos.tp - pos.entry);
+        const risk = Math.abs(pos.entry - pos.sl);
+        if (risk > 0 && (reward / risk) < 1.5) {
+            return { label: 'WARNING: POOR R:R', class: 'eval-warning' };
+        }
+    }
+
+    // 3. Entry Quality against Fibonacci
+    if (pos.type === 'BUY') {
+        // Buy in the Golden zone (50.0% - 61.8% retracement)
+        // Note: fib618 is less than high, and fib50 is higher than low.
+        // In retracement, 61.8% is closer to the bottom (lower price than 50.0% in normal ascending retracements).
+        // Let's sort levels
+        const goldenLower = Math.min(fib618, fib50);
+        const goldenUpper = Math.max(fib618, fib50);
+
+        if (pos.entry >= goldenLower - (diff * 0.005) && pos.entry <= goldenUpper + (diff * 0.005)) {
+            return { label: 'OPTIMAL: GOLDEN ZONE BUY', class: 'eval-optimal' };
+        }
+        
+        // Buy near major low support (0.0% - 23.6%)
+        const supportUpper = low + (diff * 0.236);
+        if (pos.entry >= low - (diff * 0.01) && pos.entry <= supportUpper) {
+            return { label: 'SAFE: SUPPORT BUY', class: 'eval-safe' };
+        }
+
+        // Chasing high (above 78.6% Fibonacci)
+        const chasingLower = low + (diff * 0.786);
+        if (pos.entry >= chasingLower) {
+            return { label: 'CRITICAL: CHASING DOME', class: 'eval-critical' };
+        }
+    } else { // SELL (Short)
+        // Sell in the Golden Zone (retracement up to 50%-61.8% to drop)
+        const goldenLower = Math.min(fib618, fib50);
+        const goldenUpper = Math.max(fib618, fib50);
+
+        if (pos.entry >= goldenLower - (diff * 0.005) && pos.entry <= goldenUpper + (diff * 0.005)) {
+            return { label: 'OPTIMAL: GOLDEN ZONE SELL', class: 'eval-optimal' };
+        }
+
+        // Sell near major high resistance (78.6% - 100.0%)
+        const resistanceLower = low + (diff * 0.786);
+        if (pos.entry >= resistanceLower && pos.entry <= high + (diff * 0.01)) {
+            return { label: 'SAFE: RESISTANCE SELL', class: 'eval-safe' };
+        }
+
+        // Chasing low (below 23.6% Fibonacci)
+        const chasingUpper = low + (diff * 0.236);
+        if (pos.entry <= chasingUpper) {
+            return { label: 'CRITICAL: CHASING BOTTOM', class: 'eval-critical' };
+        }
+    }
+
+    return { label: 'SAFE: VALID ENTRY', class: 'eval-safe' };
+}
+
+// ==========================================
+// SWING PLANNER RECOMMENDATION
+// ==========================================
+
+function generateTradingPlan(latestPrice, levels) {
+    const trendBadge = document.getElementById('recommendation-trend-badge');
+    const typeBadge = document.getElementById('rec-trade-type');
+    const descEl = document.getElementById('rec-trade-desc');
+    const entryEl = document.getElementById('rec-entry-val');
+    const slEl = document.getElementById('rec-sl-val');
+    const tpEl = document.getElementById('rec-tp-val');
+    const analysisEl = document.getElementById('rec-analysis-desc');
+
+    const high = levels.find(l => l.name === '100.0%').price;
+    const low = levels.find(l => l.name === '0.0%').price;
+    const fib618 = levels.find(l => l.name === '61.8%').price;
+    const fib50 = levels.find(l => l.name === '50.0%').price;
+    const fib786 = levels.find(l => l.name === '78.6%').price;
+    const diff = high - low;
+
+    // Simple Trend Identification:
+    // If latest price is above the 50.0% psychological level, structure is BULLISH.
+    // If below 50.0%, structure is BEARISH.
+    const isBullish = latestPrice >= fib50;
+
+    if (isBullish) {
+        trendBadge.textContent = 'BULLISH';
+        trendBadge.className = 'badge badge-auto';
+        trendBadge.style.background = 'rgba(0, 255, 135, 0.1)';
+        trendBadge.style.color = 'var(--green)';
+        trendBadge.style.borderColor = 'rgba(0, 255, 135, 0.2)';
+
+        typeBadge.textContent = 'BUY LIMIT';
+        typeBadge.className = 'rec-type-badge buy';
+
+        descEl.textContent = 'Buy the Retracement';
+
+        // Recommended Entry: between 61.8% and 50.0% levels
+        const entryLow = Math.min(fib618, fib50);
+        const entryHigh = Math.max(fib618, fib50);
+        entryEl.textContent = `$${entryLow.toFixed(2)} - $${entryHigh.toFixed(2)}`;
+
+        // Recommended SL: Just below 78.6% (by 1% of the swing height)
+        const recommendedSL = fib786 - (diff * 0.015);
+        slEl.textContent = `$${recommendedSL.toFixed(2)}`;
+
+        // Recommended TP: Previous swing High (100%)
+        tpEl.textContent = `$${high.toFixed(2)}`;
+
+        analysisEl.innerHTML = `
+            Gold displays a <strong>bullish structural advantage</strong> on the ${activeTimeframe.toUpperCase()} timeframe, trading above the 50% midpoint. 
+            The most optimal risk-reward strategy is to set a <strong>Buy Limit order in the Golden zone ($${entryLow.toFixed(2)} - $${entryHigh.toFixed(2)})</strong>. 
+            Keep Stop Loss tight below the 78.6% retracement ($${recommendedSL.toFixed(2)}) to mitigate market hunt risks, targeting the previous Swing High ($${high.toFixed(2)}) for a clean R:R ratio exceeding 1:2.
+        `;
+    } else {
+        trendBadge.textContent = 'BEARISH';
+        trendBadge.className = 'badge badge-auto';
+        trendBadge.style.background = 'rgba(255, 56, 96, 0.1)';
+        trendBadge.style.color = 'var(--red)';
+        trendBadge.style.borderColor = 'rgba(255, 56, 96, 0.2)';
+
+        typeBadge.textContent = 'SELL LIMIT';
+        typeBadge.className = 'rec-type-badge sell';
+
+        descEl.textContent = 'Sell the Rally';
+
+        // Recommended Entry: between 50.0% and 61.8% (during correction upwards)
+        const entryLow = Math.min(fib618, fib50);
+        const entryHigh = Math.max(fib618, fib50);
+        entryEl.textContent = `$${entryLow.toFixed(2)} - $${entryHigh.toFixed(2)}`;
+
+        // Recommended SL: Just above 78.6% (by 1% of the swing height)
+        const recommendedSL = fib786 + (diff * 0.015);
+        slEl.textContent = `$${recommendedSL.toFixed(2)}`;
+
+        // Recommended TP: Previous swing Low (0%)
+        tpEl.textContent = `$${low.toFixed(2)}`;
+
+        analysisEl.innerHTML = `
+            Gold displays a <strong>bearish structural advantage</strong> on the ${activeTimeframe.toUpperCase()} timeframe, trading below the 50% midpoint. 
+            The most optimal strategy is to set a <strong>Sell Limit order on relief rallies near the Golden zone ($${entryLow.toFixed(2)} - $${entryHigh.toFixed(2)})</strong>. 
+            Position Stop Loss just above the 78.6% retracement ($${recommendedSL.toFixed(2)}) to avoid spikes, targeting the Swing Low support ($${low.toFixed(2)}) for full profit.
+        `;
+    }
+}
+
+// ==========================================
+// CORE DASHBOARD & CHART UPDATE
+// ==========================================
+
 function updateDashboard() {
     if (!marketData) return;
 
@@ -146,7 +453,6 @@ function updateDashboard() {
     document.getElementById('range-val').textContent = `$${range.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
     document.getElementById('range-percentage').textContent = `+${rangePercent.toFixed(2)}%`;
 
-    // Dynamic High/Low Card Labels based on active timeframe
     const tfLabel = activeTimeframe.toUpperCase();
     document.getElementById('high-label').textContent = `${tfLabel} Period High`;
     document.getElementById('low-label').textContent = `${tfLabel} Period Low`;
@@ -172,10 +478,18 @@ function updateDashboard() {
         `;
     });
 
-    // 4. Update Positioning signals and insights
-    updateTradingSignals(latestPrice, isManualMode ? calculateFibonacciLevels(manualHigh, manualLow) : autoLevels);
+    const activeLevels = isManualMode ? calculateFibonacciLevels(manualHigh, manualLow) : autoLevels;
 
-    // 5. Draw/Update Chart
+    // 4. Generate AI recommendations
+    generateTradingPlan(latestPrice, activeLevels);
+
+    // 5. Update Positioning signals
+    updateTradingSignals(latestPrice, activeLevels);
+
+    // 6. Render Live Trades Portfolio
+    renderPortfolio(latestPrice, activeLevels);
+
+    // 7. Draw/Update Chart
     renderChart(tfData.candles, isManualMode ? {high: manualHigh, low: manualLow} : tfData.meta);
 }
 
@@ -198,10 +512,8 @@ function calculateCustomFibo() {
     manualHigh = highInput;
     manualLow = lowInput;
 
-    // Calculate levels
     const customLevels = calculateFibonacciLevels(manualHigh, manualLow);
 
-    // Update manual levels UI table
     const customTbody = document.getElementById('custom-fibo-tbody');
     customTbody.innerHTML = '';
     
@@ -217,7 +529,6 @@ function calculateCustomFibo() {
 
     document.getElementById('custom-levels-result').classList.remove('hidden');
     
-    // Refresh dashboard visuals to draw manual annotations
     updateDashboard();
 }
 
@@ -241,10 +552,8 @@ function renderChart(candles, meta) {
         y: [c.open, c.high, c.low, c.close]
     }));
 
-    // Calculate Fibonacci levels for drawing line annotations on chart
     const fibLevels = calculateFibonacciLevels(meta.high, meta.low);
     
-    // Chart options
     const options = {
         series: [{
             data: seriesData
