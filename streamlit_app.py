@@ -107,7 +107,50 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 </div>
             </section>
 
-            <!-- Chart & Navigation Area -->
+            <!-- Technical Indicators Row -->
+            <section class="indicators-row">
+                <!-- RSI Card -->
+                <div class="glass-card indicator-card" id="ind-rsi">
+                    <div class="ind-header">
+                        <span>RSI (14)</span>
+                        <span class="ind-status badge-neutral" id="rsi-status">NEUTRAL</span>
+                    </div>
+                    <div class="ind-value" id="rsi-val">50.0</div>
+                    <div class="ind-desc">Relative Strength Index</div>
+                </div>
+                
+                <!-- Stochastic Card -->
+                <div class="glass-card indicator-card" id="ind-stoch">
+                    <div class="ind-header">
+                        <span>Stochastic (14,3,3)</span>
+                        <span class="ind-status badge-neutral" id="stoch-status">NEUTRAL</span>
+                    </div>
+                    <div class="ind-value" id="stoch-val">%K: 50.0 | %D: 50.0</div>
+                    <div class="ind-desc" id="stoch-crossover">No Crossover</div>
+                </div>
+
+                <!-- MACD Card -->
+                <div class="glass-card indicator-card" id="ind-macd">
+                    <div class="ind-header">
+                        <span>MACD (12,26,9)</span>
+                        <span class="ind-status badge-neutral" id="macd-status">NEUTRAL</span>
+                    </div>
+                    <div class="ind-value" id="macd-val">0.0000</div>
+                    <div class="ind-desc" id="macd-crossover">Histogram: 0.0000</div>
+                </div>
+
+                <!-- Volume Trend Card -->
+                <div class="glass-card indicator-card" id="ind-volume">
+                    <div class="ind-header">
+                        <span>Volume Trend (20)</span>
+                        <span class="ind-status badge-neutral" id="vol-status">AVERAGE</span>
+                    </div>
+                    <div class="ind-value" id="vol-val">0 / 0</div>
+                    <div class="ind-desc" id="vol-percentage">100% of Average</div>
+                </div>
+            </section>
+
+            <!-- Chart Area -->
             <section class="chart-section glass-card">
                 <div class="chart-header">
                     <div class="chart-title">
@@ -265,8 +308,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                                     <input type="number" id="pos-entry" step="0.01" required placeholder="e.g. 2380.00" class="portfolio-input">
                                 </div>
                                 <div class="input-group">
-                                    <label for="pos-lots">Lots Size</label>
-                                    <input type="number" id="pos-lots" step="0.01" min="0.01" max="100.0" value="0.10" required class="portfolio-input">
+                                    <label for="pos-lots">Volume (Ounces / ออนซ์)</label>
+                                    <input type="number" id="pos-lots" step="0.10" min="0.10" max="100.0" value="1.00" required class="portfolio-input">
                                 </div>
                             </div>
                             <div class="form-group-row">
@@ -288,7 +331,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             <!-- Live Positions Table -->
             <section class="glass-card portfolio-list-section">
                 <div class="section-header-portfolio">
-                    <h3><i class="fa-solid fa-list-check logo-icon"></i> Active Trades & Live P&L (1 Lot = 100 oz)</h3>
+                    <h3><i class="fa-solid fa-list-check logo-icon"></i> Active Trades & Live P&L (Unit: Ounces / ออนซ์)</h3>
                     <div class="portfolio-summary-badges">
                         <span class="summary-badge">Total Positions: <strong id="total-positions-count">0</strong></span>
                         <span class="summary-badge">Total Floating P&L: <strong id="total-portfolio-pnl">$0.00</strong></span>
@@ -299,14 +342,14 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                         <thead>
                             <tr>
                                 <th>Type</th>
-                                <th>Lots</th>
+                                <th>Ounces</th>
                                 <th>Entry Price</th>
                                 <th>Current Price</th>
                                 <th>Stop Loss (SL)</th>
                                 <th>Take Profit (TP)</th>
                                 <th>R:R Ratio</th>
                                 <th>Floating P&L (USD)</th>
-                                <th>AI Evaluation</th>
+                                <th>AI Action Plan</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
@@ -339,6 +382,22 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     </div>
                 </div>
             </section>
+
+            <!-- Risk Disclaimer Card -->
+            <section class="glass-card risk-warning-card">
+                <div class="warning-header">
+                    <i class="fa-solid fa-triangle-exclamation warning-icon"></i>
+                    <h3>คำเตือนความเสี่ยงการลงทุน (Investment Risk Warning)</h3>
+                </div>
+                <p>
+                    <strong>คำเตือน:</strong> การซื้อขายฟอเร็กซ์ สัญญาซื้อขายล่วงหน้า (Futures) และสินค้าโภคภัณฑ์อย่างทองคำ (XAU/USD) 
+                    มีความเสี่ยงสูงและอาจไม่เหมาะกับนักลงทุนทุกคน ข้อมูลอัตราแลกเปลี่ยน ระดับ Fibonacci ดัชนีชี้วัดทางเทคนิค (RSI, Stochastic, MACD) 
+                    และสัญญาณวิเคราะห์ทั้งหมดในแอปพลิเคชันนี้ <strong>ถูกสร้างขึ้นจากสูตรสถิติและแบบจำลองทางคณิตศาสตร์ย้อนหลังเพื่อวิเคราะห์โครงสร้างตลาดเท่านั้น</strong> 
+                    ไม่ใช่บริการนำเทรด สัญญาณบอกจุดเข้าอย่างเป็นทางการ หรือคำปรึกษาชี้ชวนการลงทุนแต่อย่างใด 
+                    ผู้พัฒนาแอปพลิเคชัน <strong>ไม่รับผิดชอบต่อผลกำไร ขาดทุน หรือความเสียหายใดๆ ที่เกิดขึ้นจากการเทรดจริงของผู้ใช้งานทั้งสิ้น</strong> 
+                    ผู้ลงทุนควรทำการศึกษาความเสี่ยงและฝึกฝนการจัดการเงินทุน (Risk & Money Management) ก่อนทำการลงทุนจริงเสมอ
+                </p>
+            </section>
         </main>
         
         <!-- Footer -->
@@ -368,6 +427,7 @@ CSS_STYLES = """/* Root Theme Variables */
     --green: #00ff87;
     --red: #ff3860;
     --blue: #3b82f6;
+    --orange: #ff9f43;
     --text-primary: #f8fafc;
     --text-secondary: #94a3b8;
     --text-muted: #64748b;
@@ -599,6 +659,55 @@ body {
     letter-spacing: -0.5px;
 }
 
+/* Indicators Row */
+.indicators-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+}
+
+.indicator-card {
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.ind-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    letter-spacing: 0.5px;
+}
+
+.ind-status {
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.ind-value {
+    font-family: var(--font-heading);
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.ind-desc {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+/* Status Badges */
+.badge-neutral { background: rgba(255,255,255,0.06); color: var(--text-secondary); border: 1px solid var(--border-color); }
+.badge-bullish { background: rgba(0, 255, 135, 0.12); color: var(--green); border: 1px solid rgba(0, 255, 135, 0.2); }
+.badge-bearish { background: rgba(255, 56, 96, 0.12); color: var(--red); border: 1px solid rgba(255, 56, 96, 0.2); }
+.badge-warning { background: rgba(255, 159, 67, 0.12); color: var(--orange); border: 1px solid rgba(255, 159, 67, 0.2); }
+
 .sub-text {
     font-size: 12px;
     color: var(--text-muted);
@@ -610,6 +719,7 @@ body {
 .green-color { color: var(--green); }
 .red-color { color: var(--red); }
 .blue-color { color: var(--cyan); }
+.orange-color { color: var(--orange); }
 
 /* Chart Section */
 .chart-section {
@@ -1188,7 +1298,7 @@ tbody tr:hover {
 
 .eval-warning {
     background: rgba(255, 159, 67, 0.1);
-    color: #ff9f43;
+    color: var(--orange);
     border: 1px solid rgba(255, 159, 67, 0.2);
 }
 
@@ -1320,6 +1430,43 @@ tbody tr:hover {
     background: rgba(255, 56, 96, 0.06);
     border: 1px solid rgba(255, 56, 96, 0.2);
     color: var(--red);
+}
+
+/* Risk Warning Card CSS */
+.risk-warning-card {
+    padding: 24px;
+    border-left: 4px solid var(--red);
+    background: rgba(255, 56, 96, 0.04);
+    border-color: rgba(255, 56, 96, 0.15) !important;
+}
+
+.risk-warning-card:hover {
+    border-color: rgba(255, 56, 96, 0.25) !important;
+}
+
+.warning-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    color: var(--orange);
+}
+
+.warning-icon {
+    font-size: 20px;
+    text-shadow: 0 0 10px rgba(255, 159, 67, 0.25);
+}
+
+.warning-header h3 {
+    font-family: var(--font-heading);
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.risk-warning-card p {
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--text-secondary);
 }
 
 /* Footer styling */
@@ -1521,12 +1668,12 @@ function savePortfolio() {
 function addPosition() {
     const type = document.getElementById('pos-type').value;
     const entry = parseFloat(document.getElementById('pos-entry').value);
-    const lots = parseFloat(document.getElementById('pos-lots').value);
+    const lots = parseFloat(document.getElementById('pos-lots').value); // Direct ounces
     const slInput = document.getElementById('pos-sl').value;
     const tpInput = document.getElementById('pos-tp').value;
 
     if (isNaN(entry) || isNaN(lots) || entry <= 0 || lots <= 0) {
-        alert('Please enter a valid positive Entry Price and Lot Size.');
+        alert('Please enter a valid positive Entry Price and Volume.');
         return;
     }
 
@@ -1546,7 +1693,7 @@ function addPosition() {
         id: Date.now(),
         type,
         entry: roundToTwo(entry),
-        lots: roundToTwo(lots),
+        lots: roundToTwo(lots), // represents Ounces
         sl: sl ? roundToTwo(sl) : null,
         tp: tp ? roundToTwo(tp) : null,
         dateAdded: new Date().toISOString()
@@ -1559,7 +1706,7 @@ function addPosition() {
     document.getElementById('pos-entry').value = '';
     document.getElementById('pos-sl').value = '';
     document.getElementById('pos-tp').value = '';
-    document.getElementById('pos-lots').value = '0.10';
+    document.getElementById('pos-lots').value = '1.00';
 
     updateDashboard();
 }
@@ -1593,12 +1740,12 @@ function renderPortfolio(latestPrice, currentFibLevels) {
     let totalPnl = 0;
 
     activePositions.forEach(pos => {
-        // P&L calculation: 1 Standard Lot = 100 oz of gold
+        // P&L calculation: volume is direct ounces (P&L = diff * oz)
         let pnl = 0;
         if (pos.type === 'BUY') {
-            pnl = (latestPrice - pos.entry) * pos.lots * 100;
+            pnl = (latestPrice - pos.entry) * pos.lots;
         } else {
-            pnl = (pos.entry - latestPrice) * pos.lots * 100;
+            pnl = (pos.entry - latestPrice) * pos.lots;
         }
         totalPnl += pnl;
 
@@ -1613,7 +1760,7 @@ function renderPortfolio(latestPrice, currentFibLevels) {
         }
 
         // Eval Rating
-        const rating = evaluatePosition(pos, currentFibLevels);
+        const rating = evaluatePosition(pos, currentFibLevels, latestPrice);
 
         // Format classes
         const typeBadge = pos.type === 'BUY' ? 'badge-buy' : 'badge-sell';
@@ -1623,7 +1770,7 @@ function renderPortfolio(latestPrice, currentFibLevels) {
         tbody.innerHTML += `
             <tr>
                 <td><span class="${typeBadge}">${pos.type}</span></td>
-                <td><strong>${pos.lots.toFixed(2)}</strong></td>
+                <td><strong>${pos.lots.toFixed(2)} oz</strong></td>
                 <td>$${pos.entry.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
                 <td>$${latestPrice.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
                 <td>${pos.sl ? '$' + pos.sl.toLocaleString('en-US', { minimumFractionDigits: 2 }) : '<span class="text-muted">None</span>'}</td>
@@ -1646,8 +1793,8 @@ function renderPortfolio(latestPrice, currentFibLevels) {
     }
 }
 
-// AI Position Quality Evaluator
-function evaluatePosition(pos, levels) {
+// Upgraded AI Active Position Action Evaluator
+function evaluatePosition(pos, levels, latestPrice) {
     const high = levels.find(l => l.name === '100.0%').price;
     const low = levels.find(l => l.name === '0.0%').price;
     const fib618 = levels.find(l => l.name === '61.8%').price;
@@ -1657,63 +1804,151 @@ function evaluatePosition(pos, levels) {
 
     // 1. Critical Danger: No Stop Loss
     if (!pos.sl) {
-        return { label: 'CRITICAL: NO SL SET', class: 'eval-critical' };
+        return { label: '⚠️ NO SL (เสี่ยงสูง!)', class: 'eval-critical' };
     }
 
-    // 2. Risk/Reward Ratio Check
-    if (pos.sl && pos.tp) {
-        const reward = Math.abs(pos.tp - pos.entry);
-        const risk = Math.abs(pos.entry - pos.sl);
-        if (risk > 0 && (reward / risk) < 1.5) {
-            return { label: 'WARNING: POOR R:R', class: 'eval-warning' };
-        }
+    // 2. Action: Cut Loss
+    if (pos.type === 'BUY' && latestPrice <= pos.sl) {
+        return { label: '🚨 CUT LOSS (ต้องคัด!)', class: 'eval-critical' };
+    }
+    if (pos.type === 'SELL' && latestPrice >= pos.sl) {
+        return { label: '🚨 CUT LOSS (ต้องคัด!)', class: 'eval-critical' };
     }
 
-    // 3. Entry Quality against Fibonacci
-    if (pos.type === 'BUY') {
-        const goldenLower = Math.min(fib618, fib50);
-        const goldenUpper = Math.max(fib618, fib50);
-
-        if (pos.entry >= goldenLower - (diff * 0.005) && pos.entry <= goldenUpper + (diff * 0.005)) {
-            return { label: 'OPTIMAL: GOLDEN ZONE BUY', class: 'eval-optimal' };
+    // 3. Action: Take Profit
+    if (pos.tp) {
+        if (pos.type === 'BUY' && latestPrice >= pos.tp) {
+            return { label: '🟣 TAKE PROFIT (ขายกําไร!)', class: 'eval-optimal' };
         }
-        
-        const supportUpper = low + (diff * 0.236);
-        if (pos.entry >= low - (diff * 0.01) && pos.entry <= supportUpper) {
-            return { label: 'SAFE: SUPPORT BUY', class: 'eval-safe' };
-        }
-
-        const chasingLower = low + (diff * 0.786);
-        if (pos.entry >= chasingLower) {
-            return { label: 'CRITICAL: CHASING DOME', class: 'eval-critical' };
-        }
-    } else { // SELL (Short)
-        const goldenLower = Math.min(fib618, fib50);
-        const goldenUpper = Math.max(fib618, fib50);
-
-        if (pos.entry >= goldenLower - (diff * 0.005) && pos.entry <= goldenUpper + (diff * 0.005)) {
-            return { label: 'OPTIMAL: GOLDEN ZONE SELL', class: 'eval-optimal' };
-        }
-
-        const resistanceLower = low + (diff * 0.786);
-        if (pos.entry >= resistanceLower && pos.entry <= high + (diff * 0.01)) {
-            return { label: 'SAFE: RESISTANCE SELL', class: 'eval-safe' };
-        }
-
-        const chasingUpper = low + (diff * 0.236);
-        if (pos.entry <= chasingUpper) {
-            return { label: 'CRITICAL: CHASING BOTTOM', class: 'eval-critical' };
+        if (pos.type === 'SELL' && latestPrice <= pos.tp) {
+            return { label: '🟣 TAKE PROFIT (ขายกําไร!)', class: 'eval-optimal' };
         }
     }
 
-    return { label: 'SAFE: VALID ENTRY', class: 'eval-safe' };
+    // 4. Action: DCA / Buy More (ถัว)
+    // For BUY: Price is below entry, but still above SL, and touching a lower strong support (e.g. 61.8% or 78.6%)
+    if (pos.type === 'BUY' && latestPrice < pos.entry) {
+        const supportGolden = Math.min(fib618, fib50);
+        // If price is near the 61.8% support or 78.6% support and we haven't crossed SL
+        if (latestPrice >= supportGolden - (diff * 0.01) && latestPrice <= supportGolden + (diff * 0.01)) {
+            return { label: '🔵 DCA / BUY MORE (ถัว)', class: 'eval-warning' };
+        }
+        if (latestPrice >= fib786 - (diff * 0.01) && latestPrice <= fib786 + (diff * 0.01)) {
+            return { label: '🔵 DCA / BUY MORE (ถัว)', class: 'eval-warning' };
+        }
+    }
+    // For SELL: Price is above entry, below SL, and touching a higher strong resistance (50%, 61.8%, 78.6%)
+    if (pos.type === 'SELL' && latestPrice > pos.entry) {
+        const resistanceGolden = Math.max(fib618, fib50);
+        if (latestPrice >= resistanceGolden - (diff * 0.01) && latestPrice <= resistanceGolden + (diff * 0.01)) {
+            return { label: '🔵 DCA / SELL MORE (ถัว)', class: 'eval-warning' };
+        }
+        if (latestPrice >= fib786 - (diff * 0.01) && latestPrice <= fib786 + (diff * 0.01)) {
+            return { label: '🔵 DCA / SELL MORE (ถัว)', class: 'eval-warning' };
+        }
+    }
+
+    // 5. Action: Hold
+    return { label: '🟢 HOLD (ถือต่อไป)', class: 'eval-safe' };
 }
 
 // ==========================================
-// SWING PLANNER RECOMMENDATION
+// SWING PLANNER & CONFLUENCE RECOMMENDATION
 // ==========================================
 
-function generateTradingPlan(latestPrice, levels) {
+function updateIndicators(meta) {
+    const rsiValEl = document.getElementById('rsi-val');
+    const rsiStatusEl = document.getElementById('rsi-status');
+    const stochValEl = document.getElementById('stoch-val');
+    const stochStatusEl = document.getElementById('stoch-status');
+    const stochCrossEl = document.getElementById('stoch-crossover');
+    const macdValEl = document.getElementById('macd-val');
+    const macdStatusEl = document.getElementById('macd-status');
+    const macdCrossEl = document.getElementById('macd-crossover');
+    const volValEl = document.getElementById('vol-val');
+    const volStatusEl = document.getElementById('vol-status');
+    const volPercentEl = document.getElementById('vol-percentage');
+
+    if (!meta || !meta.latest_indicators) return;
+    const ind = meta.latest_indicators;
+
+    // 1. RSI
+    if (rsiValEl && rsiStatusEl) {
+        rsiValEl.textContent = ind.rsi.toFixed(1);
+        if (ind.rsi <= 30) {
+            rsiStatusEl.textContent = 'OVERSOLD';
+            rsiStatusEl.className = 'ind-status badge-bullish';
+        } else if (ind.rsi >= 70) {
+            rsiStatusEl.textContent = 'OVERBOUGHT';
+            rsiStatusEl.className = 'ind-status badge-bearish';
+        } else {
+            rsiStatusEl.textContent = 'NEUTRAL';
+            rsiStatusEl.className = 'ind-status badge-neutral';
+        }
+    }
+
+    // 2. Stochastic
+    if (stochValEl && stochStatusEl && stochCrossEl) {
+        stochValEl.textContent = `%K: ${ind.stoch_k.toFixed(1)} | %D: ${ind.stoch_d.toFixed(1)}`;
+        
+        // Oversold / Overbought status
+        if (ind.stoch_k <= 20 && ind.stoch_d <= 20) {
+            stochStatusEl.textContent = 'OVERSOLD';
+            stochStatusEl.className = 'ind-status badge-bullish';
+        } else if (ind.stoch_k >= 80 && ind.stoch_d >= 80) {
+            stochStatusEl.textContent = 'OVERBOUGHT';
+            stochStatusEl.className = 'ind-status badge-bearish';
+        } else {
+            stochStatusEl.textContent = 'NEUTRAL';
+            stochStatusEl.className = 'ind-status badge-neutral';
+        }
+
+        // Crossover
+        if (ind.stoch_k > ind.stoch_d) {
+            stochCrossEl.textContent = 'Bullish Crossover (ตัดขึ้น)';
+            stochCrossEl.className = 'ind-desc green-color';
+        } else {
+            stochCrossEl.textContent = 'Bearish Crossover (ตัดลง)';
+            stochCrossEl.className = 'ind-desc red-color';
+        }
+    }
+
+    // 3. MACD
+    if (macdValEl && macdStatusEl && macdCrossEl) {
+        macdValEl.textContent = ind.macd.toFixed(4);
+        macdCrossEl.textContent = `Histogram: ${ind.macd_hist.toFixed(4)}`;
+        
+        if (ind.macd > ind.macd_signal) {
+            macdStatusEl.textContent = 'BULLISH';
+            macdStatusEl.className = 'ind-status badge-bullish';
+            macdCrossEl.className = 'ind-desc green-color';
+        } else {
+            macdStatusEl.textContent = 'BEARISH';
+            macdStatusEl.className = 'ind-status badge-bearish';
+            macdCrossEl.className = 'ind-desc red-color';
+        }
+    }
+
+    // 4. Volume
+    if (volValEl && volStatusEl && volPercentEl) {
+        volValEl.textContent = `${ind.volume.toLocaleString()} / ${Math.round(ind.vol_ma20).toLocaleString()}`;
+        const pct = ind.vol_ma20 > 0 ? (ind.volume / ind.vol_ma20) * 100 : 100;
+        volPercentEl.textContent = `${pct.toFixed(0)}% of 20-candle MA`;
+
+        if (pct >= 150) {
+            volStatusEl.textContent = 'HIGH VOLUME';
+            volStatusEl.className = 'ind-status badge-bullish';
+        } else if (pct <= 50) {
+            volStatusEl.textContent = 'LOW VOLUME';
+            volStatusEl.className = 'ind-status badge-neutral';
+        } else {
+            volStatusEl.textContent = 'AVERAGE';
+            volStatusEl.className = 'ind-status badge-neutral';
+        }
+    }
+}
+
+function generateTradingPlan(latestPrice, levels, meta) {
     const trendBadge = document.getElementById('recommendation-trend-badge');
     const typeBadge = document.getElementById('rec-trade-type');
     const descEl = document.getElementById('rec-trade-desc');
@@ -1722,7 +1957,7 @@ function generateTradingPlan(latestPrice, levels) {
     const tpEl = document.getElementById('rec-tp-val');
     const analysisEl = document.getElementById('rec-analysis-desc');
 
-    if (!trendBadge || !typeBadge || !descEl || !entryEl || !slEl || !tpEl || !analysisEl) return;
+    if (!trendBadge || !typeBadge || !descEl || !entryEl || !slEl || !tpEl || !analysisEl || !meta || !meta.latest_indicators) return;
 
     const high = levels.find(l => l.name === '100.0%').price;
     const low = levels.find(l => l.name === '0.0%').price;
@@ -1731,45 +1966,82 @@ function generateTradingPlan(latestPrice, levels) {
     const fib786 = levels.find(l => l.name === '78.6%').price;
     const diff = high - low;
 
+    const ind = meta.latest_indicators;
     const isBullish = latestPrice >= fib50;
 
+    // Confluence Scoring System
+    let score = 0;
     if (isBullish) {
-        trendBadge.textContent = 'BULLISH';
-        trendBadge.className = 'badge badge-auto';
-        trendBadge.style.background = 'rgba(0, 255, 135, 0.1)';
-        trendBadge.style.color = 'var(--green)';
-        trendBadge.style.borderColor = 'rgba(0, 255, 135, 0.2)';
+        // Bullish signals
+        if (ind.rsi <= 45) score++; // RSI oversold or low
+        if (ind.stoch_k > ind.stoch_d || ind.stoch_k <= 25) score++; // Stoch cross or oversold
+        if (ind.macd > ind.macd_signal) score++; // MACD golden cross
+        if (ind.volume > ind.vol_ma20 * 1.2) score++; // Breakout volume
 
-        typeBadge.textContent = 'BUY LIMIT';
-        typeBadge.className = 'rec-type-badge buy';
-
-        descEl.textContent = 'Buy the Retracement';
-
+        // Recommended Entry: Golden zone
         const entryLow = Math.min(fib618, fib50);
         const entryHigh = Math.max(fib618, fib50);
         entryEl.textContent = `$${entryLow.toFixed(2)} - $${entryHigh.toFixed(2)}`;
 
         const recommendedSL = fib786 - (diff * 0.015);
         slEl.textContent = `$${recommendedSL.toFixed(2)}`;
-
         tpEl.textContent = `$${high.toFixed(2)}`;
 
-        analysisEl.innerHTML = `
-            Gold displays a <strong>bullish structural advantage</strong> on the ${activeTimeframe.toUpperCase()} timeframe, trading above the 50% midpoint. 
-            The most optimal risk-reward strategy is to set a <strong>Buy Limit order in the Golden zone ($${entryLow.toFixed(2)} - $${entryHigh.toFixed(2)})</strong>. 
-            Keep Stop Loss tight below the 78.6% retracement ($${recommendedSL.toFixed(2)}) to mitigate market hunt risks, targeting the previous Swing High ($${high.toFixed(2)}) for a clean R:R ratio exceeding 1:2.
-        `;
+        if (score >= 3) {
+            trendBadge.textContent = 'ACCUMULATE (STRONG BUY) 🔥';
+            trendBadge.className = 'badge';
+            trendBadge.style.background = 'rgba(0, 255, 135, 0.12)';
+            trendBadge.style.color = 'var(--green)';
+            trendBadge.style.borderColor = 'rgba(0, 255, 135, 0.3)';
+
+            typeBadge.textContent = 'ACCUMULATE';
+            typeBadge.className = 'rec-type-badge buy';
+            descEl.textContent = 'High-Confluence BUY Zone';
+            
+            analysisEl.innerHTML = `
+                ⚠️ <strong>คำเตือนการลงทุน:</strong> ระบบประเมินว่าโครงสร้างเป็น <strong>ขาขึ้นที่มีระดับความแม่นยำสูง (High Confluence)</strong> 
+                โดยระดับ Fibo ยอดซื้อย่อยตรงกับสัญญาณกลับตัวของอินดิเคเตอร์ครบครัน (RSI/Stochastic ต่ำ และ MACD ตัดขึ้น) 
+                แนะนำตั้งจุดซื้อสะสมที่โซน <strong>$${entryLow.toFixed(2)} - $${entryHigh.toFixed(2)}</strong> 
+                ตั้งจุดคัดลอส (SL) ป้องกันขอบล่างที่ <strong>$${recommendedSL.toFixed(2)}</strong> และขายทำกำไรที่แนวต้านหลัก <strong>$${high.toFixed(2)}</strong>
+            `;
+        } else if (score >= 1) {
+            trendBadge.textContent = 'ACCUMULATE (BUY) 🟢';
+            trendBadge.className = 'badge';
+            trendBadge.style.background = 'rgba(0, 255, 135, 0.08)';
+            trendBadge.style.color = 'var(--green)';
+            trendBadge.style.borderColor = 'rgba(0, 255, 135, 0.15)';
+
+            typeBadge.textContent = 'BUY SETUP';
+            typeBadge.className = 'rec-type-badge buy';
+            descEl.textContent = 'Standard BUY Zone';
+
+            analysisEl.innerHTML = `
+                ⚠️ <strong>คำเตือนการลงทุน:</strong> โครงสร้างหลักเป็นขาขึ้น แต่ <strong>อินดิเคเตอร์มีสัญญาณขัดแย้งบางส่วน</strong> 
+                สามารถตั้งรับออเดอร์ในโซนสะสม <strong>$${entryLow.toFixed(2)} - $${entryHigh.toFixed(2)}</strong> ได้ตามปกติ 
+                แต่แนะนำให้ตั้งจุดคัดลอส (SL) ไว้เสมอที่ <strong>$${recommendedSL.toFixed(2)}</strong> และห้ามเปิดไม้หนาเกินไป (รักษา Money Management)
+            `;
+        } else {
+            trendBadge.textContent = 'WAIT / HOLD (รอ) ⏳';
+            trendBadge.className = 'badge';
+            trendBadge.style.background = 'rgba(255, 159, 67, 0.12)';
+            trendBadge.style.color = 'var(--orange)';
+            trendBadge.style.borderColor = 'rgba(255, 159, 67, 0.3)';
+
+            typeBadge.textContent = 'WAIT';
+            typeBadge.className = 'rec-type-badge hold';
+            descEl.textContent = 'Wait for Support Confirmation';
+
+            analysisEl.innerHTML = `
+                ⚠️ <strong>คำเตือนการลงทุน:</strong> แม้ราคาจะย่อตัวลงมาแนวรับ Fibo แต่ <strong>โมเมนตัมอินดิเคเตอร์มีแรงเทขายกดดันหนาแน่นมาก</strong> (เสี่ยงจับมีดร่วง) 
+                แนะนำให้ <strong>ชะลอการซื้อ/รอสัญญาณกลับตัว</strong> จนกว่าแท่งเทียน H1 จะเริ่มเกิดไส้ล่าง (Pinbar) หรือ Stochastic เริ่มมีสัญญาณตัดขึ้นคอนเฟิร์ม ค่อยหาจังหวะสะสมใหม่
+            `;
+        }
     } else {
-        trendBadge.textContent = 'BEARISH';
-        trendBadge.className = 'badge badge-auto';
-        trendBadge.style.background = 'rgba(255, 56, 96, 0.1)';
-        trendBadge.style.color = 'var(--red)';
-        trendBadge.style.borderColor = 'rgba(255, 56, 96, 0.2)';
-
-        typeBadge.textContent = 'SELL LIMIT';
-        typeBadge.className = 'rec-type-badge sell';
-
-        descEl.textContent = 'Sell the Rally';
+        // Bearish signals
+        if (ind.rsi >= 55) score++;
+        if (ind.stoch_k < ind.stoch_d || ind.stoch_k >= 75) score++;
+        if (ind.macd < ind.macd_signal) score++;
+        if (ind.volume > ind.vol_ma20 * 1.2) score++;
 
         const entryLow = Math.min(fib618, fib50);
         const entryHigh = Math.max(fib618, fib50);
@@ -1777,14 +2049,55 @@ function generateTradingPlan(latestPrice, levels) {
 
         const recommendedSL = fib786 + (diff * 0.015);
         slEl.textContent = `$${recommendedSL.toFixed(2)}`;
-
         tpEl.textContent = `$${low.toFixed(2)}`;
 
-        analysisEl.innerHTML = `
-            Gold displays a <strong>bearish structural advantage</strong> on the ${activeTimeframe.toUpperCase()} timeframe, trading below the 50% midpoint. 
-            The most optimal strategy is to set a <strong>Sell Limit order on relief rallies near the Golden zone ($${entryLow.toFixed(2)} - $${entryHigh.toFixed(2)})</strong>. 
-            Position Stop Loss just above the 78.6% retracement ($${recommendedSL.toFixed(2)}) to avoid spikes, targeting the Swing Low support ($${low.toFixed(2)}) for full profit.
-        `;
+        if (score >= 3) {
+            trendBadge.textContent = 'DISTRIBUTE (STRONG SELL) 🚨';
+            trendBadge.className = 'badge';
+            trendBadge.style.background = 'rgba(255, 56, 96, 0.12)';
+            trendBadge.style.color = 'var(--red)';
+            trendBadge.style.borderColor = 'rgba(255, 56, 96, 0.3)';
+
+            typeBadge.textContent = 'SELL/SHORT';
+            typeBadge.className = 'rec-type-badge sell';
+            descEl.textContent = 'High-Confluence SELL Zone';
+
+            analysisEl.innerHTML = `
+                ⚠️ <strong>คำเตือนการลงทุน:</strong> โครงสร้างเป็น <strong>ขาลงและมีแรงกดดันเต็มรูปแบบ (High Confluence)</strong> 
+                โมเมนตัมชี้วัดพร้อมเทขายเพิ่มเมื่อแตะโซนแนวต้าน <strong>$${entryLow.toFixed(2)} - $${entryHigh.toFixed(2)}</strong> 
+                แนะนำวางจุดจำหน่ายหรือเปิด Sell ป้องกันเสี่ยงโดยตั้ง SL ที่แนวต้านสำคัญ <strong>$${recommendedSL.toFixed(2)}</strong> เป้าหมายทำกำไร <strong>$${low.toFixed(2)}</strong>
+            `;
+        } else if (score >= 1) {
+            trendBadge.textContent = 'DISTRIBUTE (SELL) 🔴';
+            trendBadge.className = 'badge';
+            trendBadge.style.background = 'rgba(255, 56, 96, 0.08)';
+            trendBadge.style.color = 'var(--red)';
+            trendBadge.style.borderColor = 'rgba(255, 56, 96, 0.15)';
+
+            typeBadge.textContent = 'SELL SETUP';
+            typeBadge.className = 'rec-type-badge sell';
+            descEl.textContent = 'Standard SELL Zone';
+
+            analysisEl.innerHTML = `
+                ⚠️ <strong>คำเตือนการลงทุน:</strong> ตลาดมีแรงเทขายหลักเด่นชัดกว่าขากล่อม ให้วางจุดดักขายหากราคารีบาวด์ขึ้นหาแนวต้านสวิง <strong>$${entryLow.toFixed(2)} - $${entryHigh.toFixed(2)}</strong> 
+                จำกัดจุดตัดขาดทุนเด็ดขาดไว้ที่ <strong>$${recommendedSL.toFixed(2)}</strong> และขายเก็บกำไรที่ขอบล่าง <strong>$${low.toFixed(2)}</strong>
+            `;
+        } else {
+            trendBadge.textContent = 'WAIT / HOLD (รอ) ⏳';
+            trendBadge.className = 'badge';
+            trendBadge.style.background = 'rgba(255, 159, 67, 0.12)';
+            trendBadge.style.color = 'var(--orange)';
+            trendBadge.style.borderColor = 'rgba(255, 159, 67, 0.3)';
+
+            typeBadge.textContent = 'WAIT';
+            typeBadge.className = 'rec-type-badge hold';
+            descEl.textContent = 'Wait for Resistance Confirmation';
+
+            analysisEl.innerHTML = `
+                ⚠️ <strong>คำเตือนการลงทุน:</strong> โครงสร้างหลักอ่อนแรงลง แต่ <strong>อินดิเคเตอร์มีแรงรีบาวด์ดันขึ้นค่อนข้างกระชั้นชิด</strong> 
+                แนะนำให้ <strong>ชะลอการกดออเดอร์และเฝ้ารอก่อน</strong> จนกว่าจะถึงแนวต้านสำคัญหรือราคาแสดงความอ่อนแรงชัดเจน ค่อยเปิดเทรดตามเป้าหมายเพื่อลดความเสี่ยงโดนลากขาขึ้น
+            `;
+        }
     }
 }
 
@@ -1856,16 +2169,19 @@ function updateDashboard() {
 
     const activeLevels = isManualMode ? calculateFibonacciLevels(manualHigh, manualLow) : autoLevels;
 
-    // 4. Generate AI recommendations
-    generateTradingPlan(latestPrice, activeLevels);
+    // 4. Update technical indicators dashboard row
+    updateIndicators(tfData.meta);
 
-    // 5. Update Positioning signals
+    // 5. Generate AI recommendations (now passes meta for indicators)
+    generateTradingPlan(latestPrice, activeLevels, tfData.meta);
+
+    // 6. Update Positioning signals
     updateTradingSignals(latestPrice, activeLevels);
 
-    // 6. Render Live Trades Portfolio
+    // 7. Render Live Trades Portfolio
     renderPortfolio(latestPrice, activeLevels);
 
-    // 7. Draw/Update Chart
+    // 8. Draw/Update Chart
     renderChart(tfData.candles, isManualMode ? {high: manualHigh, low: manualLow} : tfData.meta);
 }
 
@@ -2153,10 +2469,54 @@ def fetch_gold_data():
     # 4. Fetch Weekly data (last 2 years)
     df_w = ticker.history(period="2y", interval="1wk")
 
+    # Technical Indicators Engine (using pandas built-in math)
+    def calculate_indicators(df):
+        if len(df) < 30:
+            df['RSI'] = 50.0
+            df['Stoch_K'] = 50.0
+            df['Stoch_D'] = 50.0
+            df['MACD'] = 0.0
+            df['MACD_Signal'] = 0.0
+            df['MACD_Hist'] = 0.0
+            df['Vol_MA20'] = df['Volume']
+            return df
+
+        # A. RSI (14)
+        delta = df['Close'].diff()
+        gain = (delta.where(delta > 0, 0)).ewm(alpha=1/14, adjust=False).mean()
+        loss = (-delta.where(delta < 0, 0)).ewm(alpha=1/14, adjust=False).mean()
+        rs = gain / (loss + 1e-10)
+        df['RSI'] = 100 - (100 / (1 + rs))
+
+        # B. Stochastic Oscillator (14, 3, 3)
+        low_14 = df['Low'].rolling(window=14).min()
+        high_14 = df['High'].rolling(window=14).max()
+        df['Stoch_K'] = 100 * ((df['Close'] - low_14) / (high_14 - low_14 + 1e-10))
+        df['Stoch_D'] = df['Stoch_K'].rolling(window=3).mean()
+        df['Stoch_K'] = df['Stoch_K'].fillna(50.0)
+        df['Stoch_D'] = df['Stoch_D'].fillna(50.0)
+
+        # C. MACD (12, 26, 9)
+        ema_12 = df['Close'].ewm(span=12, adjust=False).mean()
+        ema_26 = df['Close'].ewm(span=26, adjust=False).mean()
+        df['MACD'] = ema_12 - ema_26
+        df['MACD_Signal'] = df['MACD'].ewm(span=9, adjust=False).mean()
+        df['MACD_Hist'] = df['MACD'] - df['MACD_Signal']
+
+        # D. Volume MA20
+        df['Vol_MA20'] = df['Volume'].rolling(window=20).mean()
+        df['Vol_MA20'] = df['Vol_MA20'].fillna(df['Volume'])
+
+        return df
+
     # Process all to candles list
     def process_df(df):
         if df.empty:
             return []
+        
+        # calculate indicators on df
+        df = calculate_indicators(df)
+        
         candles = []
         for idx, row in df.iterrows():
             if hasattr(idx, 'isoformat'):
@@ -2169,7 +2529,14 @@ def fetch_gold_data():
                 'high': round(float(row['High']), 2),
                 'low': round(float(row['Low']), 2),
                 'close': round(float(row['Close']), 2),
-                'volume': int(row['Volume'])
+                'volume': int(row['Volume']),
+                'rsi': round(float(row['RSI']), 2) if 'RSI' in row else 50.0,
+                'stoch_k': round(float(row['Stoch_K']), 2) if 'Stoch_K' in row else 50.0,
+                'stoch_d': round(float(row['Stoch_D']), 2) if 'Stoch_D' in row else 50.0,
+                'macd': round(float(row['MACD']), 4) if 'MACD' in row else 0.0,
+                'macd_signal': round(float(row['MACD_Signal']), 4) if 'MACD_Signal' in row else 0.0,
+                'macd_hist': round(float(row['MACD_Hist']), 4) if 'MACD_Hist' in row else 0.0,
+                'vol_ma20': round(float(row['Vol_MA20']), 1) if 'Vol_MA20' in row else float(row['Volume'])
             })
         return candles
 
@@ -2192,15 +2559,28 @@ def fetch_gold_data():
 
     def get_meta(candles):
         if not candles:
-            return {'high': 0, 'low': 0, 'fibonacci': {}}
+            return {'high': 0, 'low': 0, 'fibonacci': {}, 'latest_indicators': {}}
         highs = [c['high'] for c in candles]
         lows = [c['low'] for c in candles]
         max_high = max(highs)
         min_low = min(lows)
+        
+        latest = candles[-1]
+        
         return {
             'high': max_high,
             'low': min_low,
-            'fibonacci': calculate_fibonacci(max_high, min_low)
+            'fibonacci': calculate_fibonacci(max_high, min_low),
+            'latest_indicators': {
+                'rsi': latest.get('rsi', 50.0),
+                'stoch_k': latest.get('stoch_k', 50.0),
+                'stoch_d': latest.get('stoch_d', 50.0),
+                'macd': latest.get('macd', 0.0),
+                'macd_signal': latest.get('macd_signal', 0.0),
+                'macd_hist': latest.get('macd_hist', 0.0),
+                'volume': latest.get('volume', 0),
+                'vol_ma20': latest.get('vol_ma20', 0.0)
+            }
         }
 
     return {
@@ -2234,13 +2614,11 @@ def main():
         return
 
     # 2. Inline CSS and JS + Inject Market Data
-    # Replace the stylesheet link
     html = HTML_TEMPLATE.replace(
         '<link rel="stylesheet" href="styles.css">',
         f'<style>{CSS_STYLES}</style>'
     )
     
-    # Replace the app.js script tag with inlined code and injected data
     injected_js = f"""
     <script>
     window.marketData = {json_data};
@@ -2249,8 +2627,8 @@ def main():
     """
     html = html.replace('<script src="app.js"></script>', injected_js)
 
-    # 3. Render HTML component (height=1400 is ideal for fitting the whole page)
-    components.html(html, height=1400, scrolling=True)
+    # 3. Render HTML component (height=1500 is ideal to fit indicators)
+    components.html(html, height=1550, scrolling=True)
 
 if __name__ == '__main__':
     main()
