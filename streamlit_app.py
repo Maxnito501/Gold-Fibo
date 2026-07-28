@@ -362,7 +362,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
             <!-- Technical Analysis Context -->
             <section class="analysis-section glass-card">
-                <h3><i class="fa-solid fa-circle-info analysis-icon"></i> Market Structure Analysis (Fibonacci Retracement)</h3>
+                 <h3><i class="fa-solid fa-circle-info analysis-icon"></i> Market Structure Analysis (Fibonacci Retracement)</h3>
                 <div class="analysis-grid">
                     <div class="analysis-card">
                         <h4>Fibonacci Support & Resistance Roles</h4>
@@ -374,6 +374,22 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                             <li><strong>78.6%</strong>: Deep retracement. Reaching here shows a weakening trend, often leading to a full retest of the start (100% or 0%).</li>
                         </ul>
                     </div>
+                    <div class="analysis-card">
+                        <h4>SL & TP Logic (เกณฑ์แนะนำจุดคัดและทำกำไร)</h4>
+                        <p>ระบบกำหนดจุดแนะนำ Stop Loss (SL) และ Take Profit (TP) ตามโครงสร้างราคาคณิตศาสตร์ในทั้ง 2 กรณีหลัก ดังนี้:</p>
+                        <ul>
+                            <li><strong>กรณีแนะนำฝั่ง BUY (ซื้อขึ้น):</strong>
+                                <br>• <strong>Entry Zone:</strong> Fibo 50.0% - 61.8% (แนวรับสำคัญ)
+                                <br>• <strong>Stop Loss (SL):</strong> ต่ำกว่าแนวรับ 78.6% ลงไปอีก 1.5% ของขนาดวิ่งรอบนั้น เพื่อหลบจุดเจ้ามือทุบกวาดราคาก่อนกลับตัว (Stop Hunt Buffer)
+                                <br>• <strong>Take Profit (TP):</strong> แนวต้านสูงสุดเดิม (Fibo 100.0%)
+                            </li>
+                            <li><strong>กรณีแนะนำฝั่ง SELL (ขายลง):</strong>
+                                <br>• <strong>Entry Zone:</strong> Fibo 50.0% - 61.8% (แนวต้านสำคัญ)
+                                <br>• <strong>Stop Loss (SL):</strong> สูงกว่าแนวต้าน 78.6% ขึ้นไปอีก 1.5% ของขนาดวิ่งรอบนั้น เพื่อหลบไส้เทียนลากแลบขึ้นไปทดสอบ
+                                <br>• <strong>Take Profit (TP):</strong> แนวรับต่ำสุดเดิม (Fibo 0.0%)
+                            </li>
+                        </ul>
+                    </div>
                     <div class="analysis-card" id="trading-signals-card">
                         <h4>XAU/USD Current Positioning</h4>
                         <div id="positioning-content">
@@ -381,6 +397,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                         </div>
                     </div>
                 </div>
+
             </section>
 
             <!-- Risk Disclaimer Card -->
@@ -1341,7 +1358,7 @@ tbody tr:hover {
 
 .analysis-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     gap: 24px;
     margin-top: 16px;
 }
@@ -1623,6 +1640,13 @@ function setupEventListeners() {
     // Portfolio Form Button
     const btnAddPos = document.getElementById('btn-add-position');
     if (btnAddPos) btnAddPos.addEventListener('click', addPosition);
+
+    const posTypeSelect = document.getElementById('pos-type');
+    if (posTypeSelect) {
+        posTypeSelect.addEventListener('change', () => {
+            posTypeSelect.dataset.userModified = 'true';
+        });
+    }
 }
 
 // Calculate Fibonacci Levels helper
@@ -1707,6 +1731,12 @@ function addPosition() {
     document.getElementById('pos-sl').value = '';
     document.getElementById('pos-tp').value = '';
     document.getElementById('pos-lots').value = '1.00';
+
+    // Reset userModified flag to let it default again for next trades
+    const posTypeSelect = document.getElementById('pos-type');
+    if (posTypeSelect) {
+        delete posTypeSelect.dataset.userModified;
+    }
 
     updateDashboard();
 }
@@ -1987,6 +2017,9 @@ function generateTradingPlan(latestPrice, levels, meta) {
         slEl.textContent = `$${recommendedSL.toFixed(2)}`;
         tpEl.textContent = `$${high.toFixed(2)}`;
 
+        const slLabel = document.querySelector('.rec-level-item.stoploss .label');
+        if (slLabel) slLabel.textContent = 'STOP LOSS (below 78.6%)';
+
         if (score >= 3) {
             trendBadge.textContent = 'ACCUMULATE (STRONG BUY) 🔥';
             trendBadge.className = 'badge';
@@ -2050,6 +2083,9 @@ function generateTradingPlan(latestPrice, levels, meta) {
         const recommendedSL = fib786 + (diff * 0.015);
         slEl.textContent = `$${recommendedSL.toFixed(2)}`;
         tpEl.textContent = `$${low.toFixed(2)}`;
+
+        const slLabel = document.querySelector('.rec-level-item.stoploss .label');
+        if (slLabel) slLabel.textContent = 'STOP LOSS (above 78.6%)';
 
         if (score >= 3) {
             trendBadge.textContent = 'DISTRIBUTE (STRONG SELL) 🚨';
@@ -2178,10 +2214,18 @@ function updateDashboard() {
     // 6. Update Positioning signals
     updateTradingSignals(latestPrice, activeLevels);
 
-    // 7. Render Live Trades Portfolio
+    // 7. Auto default order type based on recommendation if not user modified
+    const posTypeSelect = document.getElementById('pos-type');
+    if (posTypeSelect && !posTypeSelect.dataset.userModified) {
+        const fib50Lvl = activeLevels.find(l => l.name === '50.0%');
+        const isBull = fib50Lvl ? latestPrice >= fib50Lvl.price : true;
+        posTypeSelect.value = isBull ? 'BUY' : 'SELL';
+    }
+
+    // 8. Render Live Trades Portfolio
     renderPortfolio(latestPrice, activeLevels);
 
-    // 8. Draw/Update Chart
+    // 9. Draw/Update Chart
     renderChart(tfData.candles, isManualMode ? {high: manualHigh, low: manualLow} : tfData.meta);
 }
 
